@@ -25,11 +25,13 @@ public class BookingDetailsController {
      */
     @PostMapping("/")
     public ResponseEntity<BookingDetails> createBookingDetails(@RequestBody final BookingDetails bookingDetails) {
-        ResponseEntity<BookingDetails> responseEntity = validateBookingDetails(bookingDetails);
-        if (responseEntity != null) {
-            return responseEntity;
-        }
+
         BookingDetails createdBooking = bookingDetailsService.createBooking(bookingDetails);
+
+        if(createdBooking==null){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
         return new ResponseEntity<>(createdBooking, HttpStatus.CREATED);
     }
 
@@ -69,10 +71,6 @@ public class BookingDetailsController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<BookingDetails> updateBookingDetails(@PathVariable final Integer id, @RequestBody final BookingDetails bookingDetails) {
-        ResponseEntity<BookingDetails> responseEntity = validateBookingDetails(bookingDetails);
-        if (responseEntity != null) {
-            return responseEntity;
-        }
         BookingDetails updatedBooking = bookingDetailsService.updateBookingDetails(id, bookingDetails);
         if (updatedBooking != null) {
             return new ResponseEntity<>(updatedBooking, HttpStatus.OK);
@@ -97,20 +95,6 @@ public class BookingDetailsController {
         }
     }
 
-    /**
-     * Validates booking details before creating or updating a booking.
-     *
-     * @param bookingDetails The booking details to validate.
-     * @return ResponseEntity with error message if validation fails, otherwise null.
-     */
-    private ResponseEntity<BookingDetails> validateBookingDetails(BookingDetails bookingDetails) {
-        if (bookingDetails.isNotAccompaniedByAdult()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        if (!bookingDetails.isAdvancePaymentDone()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        return null;
-    }
+
 
 }

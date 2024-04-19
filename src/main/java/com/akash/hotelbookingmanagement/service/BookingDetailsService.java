@@ -1,13 +1,16 @@
 package com.akash.hotelbookingmanagement.service;
 
 import com.akash.hotelbookingmanagement.model.BookingDetails;
+import com.akash.hotelbookingmanagement.model.Customer;
 import com.akash.hotelbookingmanagement.model.Room;
 import com.akash.hotelbookingmanagement.repository.BookingDetailsRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Service class for managing booking details.
@@ -18,13 +21,37 @@ public class BookingDetailsService {
     @Autowired
     private BookingDetailsRepository bookingDetailsRepository;
 
+    @Autowired
+    CustomerService customerService;
+
+    @Autowired
+    RoomService roomService;
+
     /**
      * Creates a new booking.
      *
      * @param bookingDetails The booking details to create.
      * @return The created booking details.
      */
-    public BookingDetails createBooking(final BookingDetails bookingDetails) {
+    public BookingDetails createBooking(@Valid final BookingDetails bookingDetails) {
+
+        List<Customer> customerList = bookingDetails.getCustomerList().stream().map(customer -> {
+            return customerService.getCustomerById(customer.getCustomerId());
+        }).collect(Collectors.toList());
+
+        bookingDetails.setCustomerList(customerList);
+
+        List<Room> roomList = bookingDetails.getRoomList().stream().map(room -> {
+            return roomService.getRoomByRoomNumber(room.getRoomNumber());
+        }).collect(Collectors.toList());
+
+        bookingDetails.setRoomList(roomList);
+
+        Boolean flag = validateBookingDetails(bookingDetails);
+        if (validateBookingDetails(bookingDetails)) {
+            return null;
+        }
+
         bookingDetails.setBillAmount(bookingDetails.getRoomList().stream().mapToInt(Room::getPricePerDay).reduce(0, Integer::sum));
         return bookingDetailsRepository.save(bookingDetails);
     }
@@ -58,7 +85,25 @@ public class BookingDetailsService {
      */
     public BookingDetails updateBookingDetails(final Integer id, final BookingDetails bookingDetails) {
         BookingDetails existingBooking = getBookingDetails(id);
-        if (existingBooking == null) {
+
+        if(bookingDetails.getCustomerList()!=null){
+            List<Customer> customerList = bookingDetails.getCustomerList().stream().map(customer -> {
+                return customerService.getCustomerById(customer.getCustomerId());
+            }).collect(Collectors.toList());
+
+            bookingDetails.setCustomerList(customerList);
+        }
+
+        if(bookingDetails.getRoomList()!=null){
+            List<Room> roomList = bookingDetails.getRoomList().stream().map(room -> {
+                return roomService.getRoomByRoomNumber(room.getRoomNumber());
+            }).collect(Collectors.toList());
+
+            bookingDetails.setRoomList(roomList);
+        }
+
+        Boolean flag = validateBookingDetails(bookingDetails);
+        if (validateBookingDetails(bookingDetails)) {
             return null;
         }
 
@@ -112,5 +157,34 @@ public class BookingDetailsService {
         } else {
             return false;
         }
+    }
+
+    /**
+     * Checks if the advance payment has been made for booking more than 3 rooms.
+     *
+     * @return True if advance payment is done, false otherwise.
+     */
+    public boolean isAdvancePaymentDone(BookingDetails bookingDetails) {
+        return bookingDetails.getRoomList().size() > 3 && bookingDetails.getBillAmount() / 2 <= bookingDetails.getPaidAmount();
+    }
+
+    /**
+     * Checks if children are accompanied by at least one adult.
+     *
+     * @return True if children are not accompanied by adult, false otherwise.
+     */
+    public boolean isAccompaniedByAdult(BookingDetails bookingDetails) {
+        int children = (int) bookingDetails.getCustomerList().stream().filter(customer -> customer.getAge() < 18).count();
+        return children != bookingDetails.getCustomerList().size();
+    }
+
+    /**
+     * Validates booking details before creating or updating a booking.
+     *
+     * @param bookingDetails The booking details to validate.
+     * @return ResponseEntity with error message if validation fails, otherwise null.
+     */
+    private Boolean validateBookingDetails(BookingDetails bookingDetails) {
+        return isAccompaniedByAdult(bookingDetails)&&isAdvancePaymentDone(bookingDetails);
     }
 }

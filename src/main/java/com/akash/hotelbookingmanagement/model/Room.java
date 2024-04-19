@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.engine.internal.Cascade;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,5 +68,5 @@ public class Room {
     @JoinTable(name = "customer_room",
             joinColumns = @JoinColumn(name = "roomNumber"),
             inverseJoinColumns = @JoinColumn(name = "customerId"))
-    private List<Customer> checkedInCustomers = new ArrayList<>();;
+    private List<Customer> checkedInCustomers;
 }

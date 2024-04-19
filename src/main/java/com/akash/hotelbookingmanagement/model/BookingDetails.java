@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -12,7 +13,8 @@ import java.util.List;
 /**
  * Entity class representing booking details.
  */
-@Data
+@Getter
+@Setter
 @Entity
 public class BookingDetails {
 
@@ -76,6 +78,9 @@ public class BookingDetails {
     @NotNull(message = "At least one customer must be specified")
     @Size(min = 1, message = "At least one customer must be specified")
     @OneToMany
+    @JoinTable(name = "booking_customer",
+            joinColumns = @JoinColumn(name = "booking_id"),
+            inverseJoinColumns = @JoinColumn(name = "customerId"))
     private List<Customer> customerList;
 
     /**
@@ -84,6 +89,9 @@ public class BookingDetails {
     @NotNull(message = "At least one room must be specified")
     @Size(min = 1, message = "At least one room must be specified")
     @OneToMany
+    @JoinTable(name = "booked_room_list",
+            joinColumns = @JoinColumn(name = "booking_id"),
+            inverseJoinColumns = @JoinColumn(name = "room_number"))
     private List<Room> roomList;
 
     /**
@@ -98,22 +106,4 @@ public class BookingDetails {
     @Min(value = 0, message = "Paid amount cannot be negative")
     private Integer paidAmount;
 
-    /**
-     * Checks if the advance payment has been made for booking more than 3 rooms.
-     *
-     * @return True if advance payment is done, false otherwise.
-     */
-    public boolean isAdvancePaymentDone() {
-        return roomList.size() > 3 && this.getBillAmount() / 2 <= this.getPaidAmount();
-    }
-
-    /**
-     * Checks if children are accompanied by at least one adult.
-     *
-     * @return True if children are not accompanied by adult, false otherwise.
-     */
-    public boolean isNotAccompaniedByAdult() {
-        int children = (int) this.getCustomerList().stream().filter(customer -> customer.getAge() < 18).count();
-        return children == this.getCustomerList().size();
-    }
 }
