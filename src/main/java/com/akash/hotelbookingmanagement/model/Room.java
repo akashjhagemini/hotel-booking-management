@@ -4,18 +4,15 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Represents a room in the hotel.
  */
-@Data
+@Getter
+@Setter
 @Builder
 @Entity
 @NoArgsConstructor
@@ -25,7 +22,7 @@ public class Room {
      * The unique identifier for the room.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer roomNumber;
 
     /**
@@ -64,7 +61,7 @@ public class Room {
     /**
      * The list of customers currently checked in to the room.
      */
-    @ManyToMany()
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "customer_room",
             joinColumns = @JoinColumn(name = "roomNumber"),
             inverseJoinColumns = @JoinColumn(name = "customerId"))

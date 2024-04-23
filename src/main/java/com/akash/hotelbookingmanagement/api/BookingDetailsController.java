@@ -2,6 +2,8 @@ package com.akash.hotelbookingmanagement.api;
 
 import com.akash.hotelbookingmanagement.model.BookingDetails;
 import com.akash.hotelbookingmanagement.service.BookingDetailsService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +16,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/booking")
 public class BookingDetailsController {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(BookingDetailsController.class);
+
     @Autowired
-        private BookingDetailsService bookingDetailsService;
+    private BookingDetailsService bookingDetailsService;
 
     /**
      * Creates a new booking.
@@ -25,14 +29,15 @@ public class BookingDetailsController {
      */
     @PostMapping("/")
     public ResponseEntity<BookingDetails> createBookingDetails(@RequestBody final BookingDetails bookingDetails) {
-
+        LOGGER.info("Request received to create a new booking");
         BookingDetails createdBooking = bookingDetailsService.createBooking(bookingDetails);
-
-        if(createdBooking==null){
+        if (createdBooking != null) {
+            LOGGER.info("New booking created successfully");
+            return new ResponseEntity<>(createdBooking, HttpStatus.CREATED);
+        } else {
+            LOGGER.error("Failed to create a new booking");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
-        return new ResponseEntity<>(createdBooking, HttpStatus.CREATED);
     }
 
     /**
@@ -42,6 +47,7 @@ public class BookingDetailsController {
      */
     @GetMapping("/")
     public ResponseEntity<Iterable<BookingDetails>> getAllBookingDetails() {
+        LOGGER.info("Request received to fetch all bookings");
         Iterable<BookingDetails> bookingDetailsList = bookingDetailsService.getAllBookingDetails();
         return new ResponseEntity<>(bookingDetailsList, HttpStatus.OK);
     }
@@ -54,10 +60,13 @@ public class BookingDetailsController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<BookingDetails> getBookingDetailsById(@PathVariable final Integer id) {
+        LOGGER.info("Request received to fetch booking with ID: {}", id);
         BookingDetails bookingDetails = bookingDetailsService.getBookingDetails(id);
         if (bookingDetails != null) {
+            LOGGER.info("Found booking with ID: {}", id);
             return new ResponseEntity<>(bookingDetails, HttpStatus.OK);
         } else {
+            LOGGER.warn("Booking with ID: {} not found", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
@@ -71,10 +80,13 @@ public class BookingDetailsController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<BookingDetails> updateBookingDetails(@PathVariable final Integer id, @RequestBody final BookingDetails bookingDetails) {
+        LOGGER.info("Request received to update booking with ID: {}", id);
         BookingDetails updatedBooking = bookingDetailsService.updateBookingDetails(id, bookingDetails);
         if (updatedBooking != null) {
+            LOGGER.info("Updated booking with ID: {}", id);
             return new ResponseEntity<>(updatedBooking, HttpStatus.OK);
         } else {
+            LOGGER.warn("Booking with ID: {} not found", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
@@ -87,14 +99,14 @@ public class BookingDetailsController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBookingDetails(@PathVariable final Integer id) {
+        LOGGER.info("Request received to delete booking with ID: {}", id);
         boolean deleted = bookingDetailsService.deleteBookingDetails(id);
         if (deleted) {
+            LOGGER.info("Deleted booking with ID: {}", id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } else {
+            LOGGER.warn("Booking with ID: {} not found", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-
-
-
 }

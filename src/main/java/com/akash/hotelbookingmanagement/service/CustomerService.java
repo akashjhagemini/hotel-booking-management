@@ -1,10 +1,10 @@
 package com.akash.hotelbookingmanagement.service;
 
+import com.akash.hotelbookingmanagement.exception.ResourceNotFoundException;
 import com.akash.hotelbookingmanagement.model.Customer;
 import com.akash.hotelbookingmanagement.repository.CustomerRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -45,7 +45,7 @@ public class CustomerService {
      */
     public Customer getCustomerById(final Integer id) {
         Optional<Customer> customerOptional = customerRepository.findById(id);
-        return customerOptional.orElse(null);
+        return customerOptional.orElseThrow(() -> new ResourceNotFoundException("Customer details not found with id: " + id));
     }
 
     /**
@@ -75,7 +75,7 @@ public class CustomerService {
 
             return customerRepository.save(customerOld);
         } else {
-            return null;
+            throw new ResourceNotFoundException("Customer details not found with id: " + id);
         }
     }
 
