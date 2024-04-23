@@ -1,6 +1,16 @@
 package com.akash.hotelbookingmanagement.model;
 
-import jakarta.persistence.*;
+import com.akash.hotelbookingmanagement.model.enums.ModeOfBooking;
+import com.akash.hotelbookingmanagement.model.enums.ModeOfPayment;
+import jakarta.persistence.Id;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -19,24 +29,10 @@ import java.util.List;
 public class BookingDetails {
 
     /**
-     * Enumeration for mode of booking.
+     * BookingId
      */
-    public enum ModeOfBooking {
-        Online,
-        Offline,
-    }
-
-    /**
-     * Enumeration for mode of payment.
-     */
-    public enum ModeOfPayment {
-        Prepaid,
-        Online,
-        Cash,
-    }
-
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer bookingId;
 
     /**
