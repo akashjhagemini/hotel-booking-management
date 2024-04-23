@@ -9,9 +9,11 @@ import com.akash.hotelbookingmanagement.service.BookingDetailsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -21,7 +23,7 @@ import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-
+@ExtendWith(MockitoExtension.class)
 public class BookingDetailsControllerTest {
 
     @Mock
@@ -30,12 +32,13 @@ public class BookingDetailsControllerTest {
     @InjectMocks
     private BookingDetailsController bookingDetailsController;
 
+    private BookingDetails testBookingDetails;
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
         // Setup testBookingDetails
-        BookingDetails testBookingDetails = new BookingDetails();
+        testBookingDetails = new BookingDetails();
         testBookingDetails.setBookingId(1);
         testBookingDetails.setDuration(5);
         testBookingDetails.setStartDate(LocalDate.of(2024, 4, 1));
@@ -47,19 +50,13 @@ public class BookingDetailsControllerTest {
         testBookingDetails.setBillAmount(500);
         testBookingDetails.setPaidAmount(250);
 
-        when(bookingDetailsService.createBooking(any())).thenReturn(testBookingDetails);
-        when(bookingDetailsService.getAllBookingDetails()).thenReturn(Arrays.asList(testBookingDetails));
-        when(bookingDetailsService.getBookingDetails(anyInt())).thenReturn(testBookingDetails);
-        when(bookingDetailsService.updateBookingDetails(anyInt(), any())).thenReturn(testBookingDetails);
-        when(bookingDetailsService.deleteBookingDetails(anyInt())).thenReturn(true);
     }
 
     @Test
     @DisplayName("Should create a booking")
     void testCreateBookingDetails() {
-        BookingDetails bookingDetails = new BookingDetails();
-
-        ResponseEntity<BookingDetails> responseEntity = bookingDetailsController.createBookingDetails(bookingDetails);
+        when(bookingDetailsService.createBooking(any(BookingDetails.class))).thenReturn(testBookingDetails);
+        ResponseEntity<BookingDetails> responseEntity = bookingDetailsController.createBookingDetails(testBookingDetails);
 
         assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
     }
@@ -67,6 +64,7 @@ public class BookingDetailsControllerTest {
     @Test
     @DisplayName("Should get all bookings")
     void testGetAllBookingDetails() {
+        when(bookingDetailsService.getAllBookingDetails()).thenReturn(Arrays.asList(testBookingDetails));
         ResponseEntity<Iterable<BookingDetails>> responseEntity = bookingDetailsController.getAllBookingDetails();
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -75,6 +73,7 @@ public class BookingDetailsControllerTest {
     @Test
     @DisplayName("Should get booking by ID")
     void testGetBookingDetailsById() {
+        when(bookingDetailsService.getBookingDetails(testBookingDetails.getBookingId())).thenReturn(testBookingDetails);
         ResponseEntity<BookingDetails> responseEntity = bookingDetailsController.getBookingDetailsById(1);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -83,9 +82,8 @@ public class BookingDetailsControllerTest {
     @Test
     @DisplayName("Should update booking")
     void testUpdateBookingDetails() {
-        BookingDetails bookingDetails = new BookingDetails();
-
-        ResponseEntity<BookingDetails> responseEntity = bookingDetailsController.updateBookingDetails(1, bookingDetails);
+        when(bookingDetailsService.updateBookingDetails(anyInt(), any(BookingDetails.class))).thenReturn(testBookingDetails);
+        ResponseEntity<BookingDetails> responseEntity = bookingDetailsController.updateBookingDetails(1, testBookingDetails);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
@@ -93,6 +91,7 @@ public class BookingDetailsControllerTest {
     @Test
     @DisplayName("Should delete booking")
     void testDeleteBookingDetails() {
+        when(bookingDetailsService.deleteBookingDetails(anyInt())).thenReturn(true);
         ResponseEntity<Void> responseEntity = bookingDetailsController.deleteBookingDetails(1);
 
         assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
