@@ -108,8 +108,6 @@ class BookingDetailsServiceTest {
         when(customerService.getCustomerById(testCustomer.getCustomerId())).thenReturn(testCustomer);
         when(roomService.getRoomByRoomNumber(testRoom.getRoomNumber())).thenReturn(testRoom);
         when(roomService.checkRoomsAvailability(testBookingDetails.getRoomList())).thenReturn(true);
-//        when(bookingDetailsRepository.save(testBookingDetails)).thenReturn(testBookingDetails);
-//        when(roomRepository.save(any(Room.class))).thenReturn(testRoom);
 
         // Act & Assert
         assertThrows(AdvancePaymentNotDoneException.class, () -> bookingDetailsService.createBooking(testBookingDetails));
@@ -123,8 +121,6 @@ class BookingDetailsServiceTest {
         testBookingDetails.setCustomerList(List.of(childCustomer)); // Child without adult
         when(roomService.getRoomByRoomNumber(testRoom.getRoomNumber())).thenReturn(testRoom);
         when(roomService.checkRoomsAvailability(any(List.class))).thenReturn(true);
-//        when(bookingDetailsRepository.save(any(BookingDetails.class))).thenReturn(testBookingDetails);
-//        when(roomRepository.save(any(Room.class))).thenReturn(testRoom);
         when(customerService.getCustomerById(childCustomer.getCustomerId())).thenReturn(childCustomer);
 
         // Act & Assert
@@ -206,11 +202,9 @@ class BookingDetailsServiceTest {
         testBookingDetails.setCustomerList(List.of(childCustomer)); // Child without adult
         testBookingDetails.setRoomList(List.of(testRoom));
         when(bookingDetailsRepository.findById(testBookingDetails.getBookingId())).thenReturn(Optional.of(testBookingDetails));
-//        when(bookingDetailsRepository.save(any(BookingDetails.class))).thenReturn(testBookingDetails);
         when(customerService.getCustomerById(anyInt())).thenReturn(childCustomer);
         when(roomService.checkRoomsAvailability(testBookingDetails.getRoomList())).thenReturn(true);
         when(roomService.getRoomByRoomNumber(testRoom.getRoomNumber())).thenReturn(testRoom);
-//        when(roomRepository.save(any(Room.class))).thenReturn(testRoom);
         // Act & Assert
         assertThrows(ChildrenNotAccompaniedByAdultException.class, () -> bookingDetailsService.updateBookingDetails(testBookingDetails.getBookingId(), testBookingDetails));
     }
