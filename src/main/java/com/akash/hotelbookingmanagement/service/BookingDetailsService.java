@@ -1,19 +1,16 @@
 package com.akash.hotelbookingmanagement.service;
 
-import com.akash.hotelbookingmanagement.exception.AdvancePaymentNotDoneException;
-import com.akash.hotelbookingmanagement.exception.ChildrenNotAccompaniedByAdultException;
-import com.akash.hotelbookingmanagement.exception.RoomNotAvailableException;
-import com.akash.hotelbookingmanagement.exception.ResourceNotFoundException;
 import com.akash.hotelbookingmanagement.model.BookingDetails;
 import com.akash.hotelbookingmanagement.model.Customer;
 import com.akash.hotelbookingmanagement.model.Room;
 import com.akash.hotelbookingmanagement.repository.BookingDetailsRepository;
-import com.akash.hotelbookingmanagement.repository.RoomRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.List;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Service class for managing booking details.
@@ -25,17 +22,10 @@ public class BookingDetailsService {
     private BookingDetailsRepository bookingDetailsRepository;
 
     @Autowired
-    private CustomerService customerService;
+    CustomerService customerService;
 
     @Autowired
-    private RoomService roomService;
-
-    @Autowired
-    private RoomRepository roomRepository;
-
-    private static final int MAX_NUMBER_OF_ROOMS_WITHOUT_ANY_ADV_PAYMENT_REQUIREMENT = 3;
-    private static final int MIN_ADULT_AGE = 18;
-
+    RoomService roomService;
 
     /**
      * Creates a new booking.
@@ -45,45 +35,25 @@ public class BookingDetailsService {
      */
     public BookingDetails createBooking(@Valid final BookingDetails bookingDetails) {
 
-        // populate customers from customerId
-        List<Customer> customerList = bookingDetails.getCustomerList().stream().map(customer ->
-            customerService.getCustomerById(customer.getCustomerId())
-        ).toList();
+        List<Customer> customerList = bookingDetails.getCustomerList().stream().map(customer -> {
+            return customerService.getCustomerById(customer.getCustomerId());
+        }).collect(Collectors.toList());
 
         bookingDetails.setCustomerList(customerList);
 
-        //check if all the rooms are available or not
-        if (!roomService.checkRoomsAvailability(bookingDetails.getRoomList())) {
-            throw new RoomNotAvailableException("All rooms selected are currently not available");
-        }
-
-        //populate all rooms from roomNumber
-        List<Room> roomList = bookingDetails.getRoomList().stream().map(room ->
-            roomService.getRoomByRoomNumber(room.getRoomNumber())
-        ).toList();
+        List<Room> roomList = bookingDetails.getRoomList().stream().map(room -> {
+            return roomService.getRoomByRoomNumber(room.getRoomNumber());
+        }).collect(Collectors.toList());
 
         bookingDetails.setRoomList(roomList);
 
-        if (!isAccompaniedByAdult(bookingDetails)) {
-            throw new ChildrenNotAccompaniedByAdultException("At least one adult must be present with children");
+        Boolean flag = validateBookingDetails(bookingDetails);
+        if (validateBookingDetails(bookingDetails)) {
+            return null;
         }
 
-        if (!isAdvancePaymentDone(bookingDetails)) {
-            throw new AdvancePaymentNotDoneException("For number of customers more than 3, at least 50% payment must be done");
-        }
-
-        // from the list of rooms calculate the total bill amount from price-per-day and duration
-        bookingDetails.setBillAmount(bookingDetails.getRoomList().stream().mapToInt(Room::getPricePerDay).sum());
-
-        BookingDetails savedBookingDetails = bookingDetailsRepository.save(bookingDetails);
-
-        //set the availability of every room to be false after saving so as to avoid possibility of error
-        bookingDetails.getRoomList().forEach(room -> {
-            room = roomService.getRoomByRoomNumber(room.getRoomNumber());
-            room.setAvailability(false);
-            roomRepository.save(room);
-        });
-        return savedBookingDetails;
+        bookingDetails.setBillAmount(bookingDetails.getRoomList().stream().mapToInt(Room::getPricePerDay).reduce(0, Integer::sum));
+        return bookingDetailsRepository.save(bookingDetails);
     }
 
     /**
@@ -93,8 +63,8 @@ public class BookingDetailsService {
      * @return The booking details if found, otherwise null.
      */
     public BookingDetails getBookingDetails(final Integer id) {
-        return bookingDetailsRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking details not found with id: " + id));
+        Optional<BookingDetails> optionalBookingDetails = bookingDetailsRepository.findById(id);
+        return optionalBookingDetails.orElse(null);
     }
 
     /**
@@ -116,36 +86,28 @@ public class BookingDetailsService {
     public BookingDetails updateBookingDetails(final Integer id, final BookingDetails bookingDetails) {
         BookingDetails existingBooking = getBookingDetails(id);
 
-        // populate customers from customerId
-        if (bookingDetails.getCustomerList() != null) {
-            List<Customer> customerList = bookingDetails.getCustomerList().stream().map(customer ->
-                customerService.getCustomerById(customer.getCustomerId())
-            ).toList();
+        if(bookingDetails.getCustomerList()!=null){
+            List<Customer> customerList = bookingDetails.getCustomerList().stream().map(customer -> {
+                return customerService.getCustomerById(customer.getCustomerId());
+            }).collect(Collectors.toList());
 
-            existingBooking.setCustomerList(customerList);
+            bookingDetails.setCustomerList(customerList);
         }
 
-        if (bookingDetails.getRoomList() != null) {
-            //check if all the rooms are available or not
-            if (!roomService.checkRoomsAvailability(bookingDetails.getRoomList())) {
-                throw new RoomNotAvailableException("All rooms selected are currently not available");
-            }
-            //populate all rooms from roomNumber
-            List<Room> roomList = bookingDetails.getRoomList().stream().map(room ->
-                roomService.getRoomByRoomNumber(room.getRoomNumber())
-            ).toList();
+        if(bookingDetails.getRoomList()!=null){
+            List<Room> roomList = bookingDetails.getRoomList().stream().map(room -> {
+                return roomService.getRoomByRoomNumber(room.getRoomNumber());
+            }).collect(Collectors.toList());
 
-            existingBooking.setRoomList(roomList);
+            bookingDetails.setRoomList(roomList);
         }
 
-        if (!isAccompaniedByAdult(bookingDetails)) {
-            throw new ChildrenNotAccompaniedByAdultException("At least one adult must be present with children");
+        Boolean flag = validateBookingDetails(bookingDetails);
+        if (validateBookingDetails(bookingDetails)) {
+            return null;
         }
 
-        if (!isAdvancePaymentDone(bookingDetails)) {
-            throw new AdvancePaymentNotDoneException("For number of customers more than 2, at least 50% payment must be done");
-        }
-
+        // Update booking details
         if (bookingDetails.getDuration() != null) {
             existingBooking.setDuration(bookingDetails.getDuration());
         }
@@ -161,6 +123,12 @@ public class BookingDetailsService {
         if (bookingDetails.getModeOfPayment() != null) {
             existingBooking.setModeOfPayment(bookingDetails.getModeOfPayment());
         }
+        if (bookingDetails.getCustomerList() != null) {
+            existingBooking.setCustomerList(bookingDetails.getCustomerList());
+        }
+        if (bookingDetails.getRoomList() != null) {
+            existingBooking.setRoomList(bookingDetails.getRoomList());
+        }
         if (bookingDetails.getBillAmount() != null) {
             existingBooking.setBillAmount(bookingDetails.getBillAmount());
         }
@@ -168,20 +136,12 @@ public class BookingDetailsService {
             existingBooking.setPaidAmount(bookingDetails.getPaidAmount());
         }
 
-        if (existingBooking.getRoomList() != null) {
+        // Recalculate bill amount
+        if(existingBooking.getRoomList()!=null) {
             existingBooking.setBillAmount(existingBooking.getRoomList().stream().mapToInt(Room::getPricePerDay).sum());
         }
 
-        BookingDetails savedBookingDetails = bookingDetailsRepository.save(existingBooking);
-
-        //set the availability of every room to be false after saving so as to avoid possibility of error
-        bookingDetails.getRoomList().forEach(room -> {
-            room = roomService.getRoomByRoomNumber(room.getRoomNumber());
-            room.setAvailability(false);
-            roomRepository.save(room);
-        });
-
-        return savedBookingDetails;
+        return bookingDetailsRepository.save(existingBooking);
     }
 
     /**
@@ -202,28 +162,29 @@ public class BookingDetailsService {
     /**
      * Checks if the advance payment has been made for booking more than 3 rooms.
      *
-     * @param bookingDetails the details of booking
      * @return True if advance payment is done, false otherwise.
      */
-    public boolean isAdvancePaymentDone(final BookingDetails bookingDetails) {
-        if (bookingDetails.getRoomList() == null || bookingDetails.getRoomList().size() <= MAX_NUMBER_OF_ROOMS_WITHOUT_ANY_ADV_PAYMENT_REQUIREMENT) {
-            return true;
-        }
-        return (bookingDetails.getBillAmount() / 2 <= bookingDetails.getPaidAmount());
+    public boolean isAdvancePaymentDone(BookingDetails bookingDetails) {
+        return bookingDetails.getRoomList().size() > 3 && bookingDetails.getBillAmount() / 2 <= bookingDetails.getPaidAmount();
     }
 
     /**
      * Checks if children are accompanied by at least one adult.
      *
-     * @param bookingDetails the details of booking
      * @return True if children are not accompanied by adult, false otherwise.
      */
-    public boolean isAccompaniedByAdult(final BookingDetails bookingDetails) {
-        if (bookingDetails.getCustomerList() == null) {
-            return true;
-        }
-        long children = bookingDetails.getCustomerList().stream().filter(customer -> customer.getAge() < MIN_ADULT_AGE).count();
+    public boolean isAccompaniedByAdult(BookingDetails bookingDetails) {
+        int children = (int) bookingDetails.getCustomerList().stream().filter(customer -> customer.getAge() < 18).count();
         return children != bookingDetails.getCustomerList().size();
     }
 
+    /**
+     * Validates booking details before creating or updating a booking.
+     *
+     * @param bookingDetails The booking details to validate.
+     * @return ResponseEntity with error message if validation fails, otherwise null.
+     */
+    private Boolean validateBookingDetails(BookingDetails bookingDetails) {
+        return isAccompaniedByAdult(bookingDetails)&&isAdvancePaymentDone(bookingDetails);
+    }
 }

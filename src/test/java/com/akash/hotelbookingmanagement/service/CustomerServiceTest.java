@@ -1,6 +1,5 @@
 package com.akash.hotelbookingmanagement.service;
 
-import com.akash.hotelbookingmanagement.exception.ResourceNotFoundException;
 import com.akash.hotelbookingmanagement.model.Customer;
 import com.akash.hotelbookingmanagement.repository.CustomerRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,9 +8,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class CustomerServiceTest {
@@ -22,111 +26,139 @@ class CustomerServiceTest {
     @InjectMocks
     private CustomerService customerService;
 
-    private Customer testCustomer;
-
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-
-        // Setup a test customer
-        testCustomer = Customer.builder()
-                .customerId(1)
-                .fullName("Akash")
-                .address("Gemini")
-                .age(30)
-                .contactNumber("9876543211")
-                .build();
     }
 
     @Test
     void testAddCustomer() {
-        when(customerRepository.save(any(Customer.class))).thenReturn(testCustomer);
+        // Arrange
+        Customer customer = new Customer("John Doe", "123 Main St", 30, "1234567890");
+        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
 
-        Customer addedCustomer = customerService.addCustomer(testCustomer);
+        // Act
+        Customer addedCustomer = customerService.addCustomer(customer);
 
+        // Assert
         assertNotNull(addedCustomer);
-        assertEquals(testCustomer, addedCustomer);
-
-        verify(customerRepository, times(1)).save(any(Customer.class));
+        assertEquals(customer, addedCustomer);
+        verify(customerRepository, times(1)).save(customer);
     }
 
     @Test
     void testGetAllCustomers() {
-        when(customerRepository.findAll()).thenReturn(java.util.Collections.singletonList(testCustomer));
+        // Arrange
+        Customer customer1 = new Customer("akash", "delhi", 30, "1234567890");
+        Customer customer2 = new Customer("aman", "haryana", 30, "1234567899");
 
-        Iterable<Customer> customers = customerService.getAllCustomers();
+        List<Customer> customers=new ArrayList<>();
+        customers.add(customer1);
+        customers.add(customer2);
 
-        assertNotNull(customers);
-        assertTrue(customers.iterator().hasNext());
-        assertEquals(testCustomer, customers.iterator().next());
+        when(customerRepository.findAll()).thenReturn(customers);
 
+        // Act
+        List<Customer> result = (List<Customer>) customerService.getAllCustomers();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2,result.size());
+        assertEquals(customers, result);
         verify(customerRepository, times(1)).findAll();
     }
 
     @Test
-    void testGetCustomerById() {
-        when(customerRepository.findById(1)).thenReturn(Optional.of(testCustomer));
+    void testGetCustomerById_CustomerFound() {
+        // Arrange
+        Customer customer = new Customer("John Doe", "123 Main St", 30, "1234567890");
+        when(customerRepository.findById(anyInt())).thenReturn(Optional.of(customer));
 
-        Customer foundCustomer = customerService.getCustomerById(1);
+        // Act
+        Customer result = customerService.getCustomerById(1);
 
-        assertNotNull(foundCustomer);
-        assertEquals(testCustomer, foundCustomer);
-
-        verify(customerRepository, times(1)).findById(1);
-    }
-
-    @Test
-    void testGetCustomerById_NotFound() {
-        when(customerRepository.findById(1)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> customerService.getCustomerById(1));
-
-        verify(customerRepository, times(1)).findById(1);
-    }
-
-    @Test
-    void testUpdateCustomer() {
-        Customer updatedCustomer = Customer.builder()
-                .customerId(1)
-                .fullName("Akash Jha")
-                .address("Gemini Solutions")
-                .age(35)
-                .contactNumber("9876543210")
-                .build();
-
-        when(customerRepository.findById(1)).thenReturn(Optional.of(testCustomer));
-        when(customerRepository.save(any(Customer.class))).thenReturn(updatedCustomer);
-
-        Customer result = customerService.updateCustomer(1, updatedCustomer);
-
+        // Assert
         assertNotNull(result);
-        assertEquals(updatedCustomer, result);
-
+        assertEquals(customer, result);
         verify(customerRepository, times(1)).findById(1);
-        verify(customerRepository, times(1)).save(any(Customer.class));
     }
 
     @Test
-    void testDeleteCustomer() {
-        when(customerRepository.existsById(1)).thenReturn(true);
+    void testGetCustomerById_CustomerNotFound() {
+        // Arrange
+        Integer customerId = 1;
+        when(customerRepository.findById(customerId)).thenReturn(Optional.empty());
 
-        boolean deleted = customerService.deleteCustomer(1);
+        // Act
+        Customer result = customerService.getCustomerById(customerId);
 
-        assertTrue(deleted);
-
-        verify(customerRepository, times(1)).existsById(1);
-        verify(customerRepository, times(1)).deleteById(1);
+        // Assert
+        assertNull(result);
+        verify(customerRepository, times(1)).findById(customerId);
     }
 
     @Test
-    void testDeleteCustomer_NotFound() {
-        when(customerRepository.existsById(1)).thenReturn(false);
+    void testUpdateCustomer_CustomerFound() {
+        // Arrange
+        Integer customerId = 1;
+        Customer customerOld = new Customer("John Doe", "123 Main St", 30, "1234567890");
+        Customer customerNew = new Customer("Jane Doe", "456 Elm St", 25, "9876543210");
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customerOld));
+        when(customerRepository.save(any(Customer.class))).thenReturn(customerNew);
 
-        boolean deleted = customerService.deleteCustomer(1);
+        // Act
+        Customer result = customerService.updateCustomer(customerId, customerNew);
 
-        assertFalse(deleted);
+        // Assert
+        assertNotNull(result);
+        assertEquals(customerNew, result);
+        verify(customerRepository, times(1)).findById(customerId);
+        verify(customerRepository, times(1)).save(customerOld);
+    }
 
-        verify(customerRepository, times(1)).existsById(1);
-        verify(customerRepository, never()).deleteById(1);
+    @Test
+    void testUpdateCustomer_CustomerNotFound() {
+        // Arrange
+        Integer customerId = 1;
+        Customer customerNew = new Customer("Jane Doe", "456 Elm St", 25, "9876543210");
+        when(customerRepository.findById(customerId)).thenReturn(Optional.empty());
+
+        // Act
+        Customer result = customerService.updateCustomer(customerId, customerNew);
+
+        // Assert
+        assertNull(result);
+        verify(customerRepository, times(1)).findById(customerId);
+        verify(customerRepository, never()).save(any(Customer.class));
+    }
+
+    @Test
+    void testDeleteCustomer_CustomerFound() {
+        // Arrange
+        Integer customerId = 1;
+        when(customerRepository.existsById(customerId)).thenReturn(true);
+
+        // Act
+        boolean result = customerService.deleteCustomer(customerId);
+
+        // Assert
+        assertTrue(result);
+        verify(customerRepository, times(1)).existsById(customerId);
+        verify(customerRepository, times(1)).deleteById(customerId);
+    }
+
+    @Test
+    void testDeleteCustomer_CustomerNotFound() {
+        // Arrange
+        Integer customerId = 1;
+        when(customerRepository.existsById(customerId)).thenReturn(false);
+
+        // Act
+        boolean result = customerService.deleteCustomer(customerId);
+
+        // Assert
+        assertFalse(result);
+        verify(customerRepository, times(1)).existsById(customerId);
+        verify(customerRepository, never()).deleteById(customerId);
     }
 }

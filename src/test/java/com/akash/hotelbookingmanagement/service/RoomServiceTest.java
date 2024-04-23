@@ -1,11 +1,9 @@
 package com.akash.hotelbookingmanagement.service;
 
-import com.akash.hotelbookingmanagement.config.RoomMapper;
-import com.akash.hotelbookingmanagement.dto.RoomDto;
-import com.akash.hotelbookingmanagement.exception.ResourceNotFoundException;
 import com.akash.hotelbookingmanagement.model.Customer;
 import com.akash.hotelbookingmanagement.model.Room;
 import com.akash.hotelbookingmanagement.repository.RoomRepository;
+import com.akash.hotelbookingmanagement.service.RoomService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -17,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class RoomServiceTest {
@@ -24,183 +23,224 @@ class RoomServiceTest {
     @Mock
     private RoomRepository roomRepository;
 
-    @Mock
-    private CustomerService customerService;
-
-    @Mock
-    private RoomMapper roomMapper;
-
     @InjectMocks
     private RoomService roomService;
-
-    private Room testRoom;
-    private Customer testCustomer;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-
-        // Setup a test customer
-        testCustomer = new Customer(1, "John Doe", "123 Main St", 30, "1234567890");
-
-        // Set up a test room with the test customer
-        List<Customer> checkedInCustomers = new ArrayList<>();
-        checkedInCustomers.add(testCustomer);
-
-        testRoom = Room.builder()
-                .roomNumber(101)
-                .type("Standard")
-                .occupancy(2)
-                .pricePerDay(100)
-                .availability(true)
-                .isCheckedIn(false)
-                .isCheckedOut(true)
-                .checkedInCustomers(checkedInCustomers)
-                .build();
     }
 
     @Test
     void testCreateRoom() {
         // Arrange
-        when(customerService.getCustomerById(anyInt())).thenReturn(testCustomer);
-        when(roomRepository.save(any(Room.class))).thenReturn(testRoom);
+        Room room = Room.builder()
+                .type("Single")
+                .pricePerDay(100)
+                .occupancy(2)
+                .isCheckedIn(true)
+                .isCheckedOut(false)
+                .build();
+        when(roomRepository.save(any(Room.class))).thenReturn(room);
 
         // Act
-        Room createdRoom = roomService.createRoom(testRoom);
+        Room savedRoom = roomService.createRoom(room);
 
         // Assert
-        assertNotNull(createdRoom);
-        assertEquals(testRoom, createdRoom);
-
-        verify(customerService, times(1)).getCustomerById(anyInt());
-        verify(roomRepository, times(1)).save(any(Room.class));
+        assertNotNull(savedRoom);
+        assertEquals(room, savedRoom);
+        verify(roomRepository, times(1)).save(room);
     }
 
     @Test
     void testGetAllRooms() {
         // Arrange
-        List<Room> roomList = new ArrayList<>();
-        roomList.add(testRoom);
-        when(roomRepository.findAll()).thenReturn(roomList);
+        List<Room> rooms = new ArrayList<>();
+        rooms.add(Room.builder()
+                .type("Single")
+                .pricePerDay(100)
+                .occupancy(2)
+                .isCheckedIn(true)
+                .isCheckedOut(false).build());
+        rooms.add(Room.builder().type("Double").pricePerDay(150).occupancy(4).isCheckedIn(true).isCheckedOut(false).build());
+        when(roomRepository.findAll()).thenReturn(rooms);
 
         // Act
-        Iterable<Room> rooms = roomService.getAllRooms();
+        Iterable<Room> result = roomService.getAllRooms();
 
         // Assert
-        assertNotNull(rooms);
-        assertTrue(rooms.iterator().hasNext());
-        assertEquals(testRoom, rooms.iterator().next());
-
+        assertNotNull(result);
+        assertEquals(rooms, result);
         verify(roomRepository, times(1)).findAll();
     }
 
     @Test
-    void testGetRoomByRoomNumber() {
+    void testGetRoomByRoomNumber_RoomFound() {
         // Arrange
-        when(roomRepository.findById(101)).thenReturn(Optional.of(testRoom));
+        Integer roomNumber = 101;
+        Room room = Room.builder()
+                .type("Single")
+                .pricePerDay(100)
+                .occupancy(2)
+                .isCheckedIn(true)
+                .isCheckedOut(false).build();
+        when(roomRepository.findById(roomNumber)).thenReturn(Optional.of(room));
 
         // Act
-        Room foundRoom = roomService.getRoomByRoomNumber(101);
-
-        // Assert
-        assertNotNull(foundRoom);
-        assertEquals(testRoom, foundRoom);
-
-        verify(roomRepository, times(1)).findById(101);
-    }
-
-    @Test
-    void testGetRoomByRoomNumber_NotFound() {
-        // Arrange
-        when(roomRepository.findById(101)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> roomService.getRoomByRoomNumber(101));
-
-        verify(roomRepository, times(1)).findById(101);
-    }
-
-    @Test
-    void testUpdateRoomById() {
-        // Arrange
-        RoomDto updatedRoomDto = new RoomDto();
-        updatedRoomDto.setType("Deluxe");
-
-        Room updatedRoom = Room.builder()
-                .roomNumber(101)
-                .type("Deluxe")
-                .build();
-
-        when(roomRepository.findById(101)).thenReturn(Optional.of(testRoom));
-        when(roomMapper.convertToEntity(updatedRoomDto)).thenReturn(updatedRoom);
-        when(roomRepository.save(testRoom)).thenReturn(updatedRoom);
-
-        // Act
-        Room result = roomService.updateRoomById(101, updatedRoomDto);
+        Room result = roomService.getRoomByRoomNumber(roomNumber);
 
         // Assert
         assertNotNull(result);
-        assertEquals(updatedRoom, result);
-
-        verify(roomRepository, times(1)).findById(101);
-        verify(roomMapper, times(1)).convertToEntity(updatedRoomDto);
-        verify(roomRepository, times(1)).save(testRoom);
+        assertEquals(room, result);
+        verify(roomRepository, times(1)).findById(roomNumber);
     }
 
     @Test
-    void testDeleteRoom() {
+    void testGetRoomByRoomNumber_RoomNotFound() {
         // Arrange
-        when(roomRepository.existsById(101)).thenReturn(true);
+        Integer roomNumber = 101;
+        when(roomRepository.findById(roomNumber)).thenReturn(Optional.empty());
 
         // Act
-        roomService.deleteRoom(101);
+        Room result = roomService.getRoomByRoomNumber(roomNumber);
 
         // Assert
-        verify(roomRepository, times(1)).existsById(101);
-        verify(roomRepository, times(1)).deleteById(101);
+        assertNull(result);
+        verify(roomRepository, times(1)).findById(roomNumber);
     }
 
     @Test
-    void testDeleteRoom_NotFound() {
+    void testGetRoomsByType() {
         // Arrange
-        when(roomRepository.existsById(101)).thenReturn(false);
+        String roomType = "Single";
+        List<Room> rooms = new ArrayList<>();
+        rooms.add(Room.builder()
+                .type("Single")
+                .pricePerDay(100)
+                .occupancy(2)
+                .isCheckedIn(true)
+                .isCheckedOut(false).build());
+        rooms.add(Room.builder().type("Single").pricePerDay(120).occupancy(2).isCheckedIn(true).isCheckedOut(false).build());
+        when(roomRepository.findAllByType(roomType)).thenReturn(rooms);
 
         // Act
-        roomService.deleteRoom(101);
+        Iterable<Room> result = roomService.getRoomsByType(roomType);
 
         // Assert
-        verify(roomRepository, times(1)).existsById(101);
-        verify(roomRepository, never()).deleteById(101);
+        assertNotNull(result);
+        assertEquals(rooms, result);
+        verify(roomRepository, times(1)).findAllByType(roomType);
     }
 
     @Test
-    void testCheckRoomsAvailability_AllAvailable() {
+    void testGetCheckedInCustomers_RoomFound() {
         // Arrange
-        List<Room> roomList = new ArrayList<>();
-        roomList.add(testRoom);
-        when(roomRepository.findById(testRoom.getRoomNumber())).thenReturn(Optional.of(testRoom));
+        Integer roomNumber = 101;
+        List<Customer> customers = new ArrayList<>();
+        customers.add(new Customer("John Doe", "123 Main St", 30, "1234567890"));
+        customers.add(new Customer("Jane Doe", "456 Elm St", 25, "9876543210"));
+        Room room = Room.builder()
+                .type("Single")
+                .pricePerDay(100)
+                .occupancy(2)
+                .isCheckedIn(true)
+                .isCheckedOut(false)
+                .checkedInCustomers(customers).build();
+        when(roomRepository.findById(roomNumber)).thenReturn(Optional.of(room));
 
         // Act
-        boolean result = roomService.checkRoomsAvailability(roomList);
+        Iterable<Customer> result = roomService.getCheckedInCustomers(roomNumber);
 
         // Assert
-        assertTrue(result);
+        assertNotNull(result);
+        assertEquals(customers, result);
+        verify(roomRepository, times(1)).findById(roomNumber);
     }
 
     @Test
-    void testCheckRoomsAvailability_NotAvailable() {
+    void testGetCheckedInCustomers_RoomNotFound() {
         // Arrange
-        testRoom.setAvailability(false);
-        List<Room> roomList = new ArrayList<>();
-        roomList.add(testRoom);
-
-        when(roomRepository.findById(testRoom.getRoomNumber())).thenReturn(Optional.of(testRoom));
-
+        Integer roomNumber = 101;
+        when(roomRepository.findById(roomNumber)).thenReturn(Optional.empty());
 
         // Act
-        boolean result = roomService.checkRoomsAvailability(roomList);
+        Iterable<Customer> result = roomService.getCheckedInCustomers(roomNumber);
 
         // Assert
-        assertFalse(result);
+        assertNull(result);
+        verify(roomRepository, times(1)).findById(roomNumber);
+    }
+
+    @Test
+    void testUpdateRoomById_RoomFound() {
+        // Arrange
+        Integer roomNumber = 101;
+        Room roomOld = Room.builder()
+                .type("Single")
+                .pricePerDay(100)
+                .occupancy(2)
+                .isCheckedIn(true)
+                .isCheckedOut(false).build();
+        Room roomNew = Room.builder().type("Double").pricePerDay(150).occupancy(4).isCheckedIn(true).isCheckedOut(false).build();
+        when(roomRepository.findById(roomNumber)).thenReturn(Optional.of(roomOld));
+        when(roomRepository.save(any(Room.class))).thenReturn(roomNew);
+
+        // Act
+        Room result = roomService.updateRoomById(roomNumber, roomNew);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(roomNew, result);
+        verify(roomRepository, times(1)).findById(roomNumber);
+        verify(roomRepository, times(1)).save(roomOld);
+    }
+
+    @Test
+    void testUpdateRoomById_RoomNotFound() {
+        // Arrange
+        Integer roomNumber = 101;
+        Room roomNew = Room.builder()
+                .type("Double")
+                .pricePerDay(150)
+                .occupancy(4)
+                .isCheckedIn(true)
+                .isCheckedOut(false).build();
+        when(roomRepository.findById(roomNumber)).thenReturn(Optional.empty());
+
+        // Act
+        Room result = roomService.updateRoomById(roomNumber, roomNew);
+
+        // Assert
+        assertNull(result);
+        verify(roomRepository, times(1)).findById(roomNumber);
+        verify(roomRepository, never()).save(any(Room.class));
+    }
+
+    @Test
+    void testDeleteRoom_RoomExists() {
+        // Arrange
+        Integer roomNumber = 101;
+        when(roomRepository.existsById(roomNumber)).thenReturn(true);
+
+        // Act
+        roomService.deleteRoom(roomNumber);
+
+        // Assert
+        verify(roomRepository, times(1)).existsById(roomNumber);
+        verify(roomRepository, times(1)).deleteById(roomNumber);
+    }
+
+    @Test
+    void testDeleteRoom_RoomDoesNotExist() {
+        // Arrange
+        Integer roomNumber = 101;
+        when(roomRepository.existsById(roomNumber)).thenReturn(false);
+
+        // Act
+        roomService.deleteRoom(roomNumber);
+
+        // Assert
+        verify(roomRepository, times(1)).existsById(roomNumber);
+        verify(roomRepository, never()).deleteById(roomNumber);
     }
 }
