@@ -73,8 +73,6 @@ class BookingDetailsServiceTest {
 
     @Test
     void testCreateBooking_Success() {
-        testBookingDetails.getRoomList().forEach(room -> System.out.println(room.getRoomNumber()));
-        testBookingDetails.getCustomerList().forEach(customer -> System.out.println(customer.getCustomerId()));
         // Arrange
         when(customerService.getCustomerById(testCustomer.getCustomerId())).thenReturn(testCustomer);
         when(roomService.getRoomByRoomNumber(testRoom.getRoomNumber())).thenReturn(testRoom);
