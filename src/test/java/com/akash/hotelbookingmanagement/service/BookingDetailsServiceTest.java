@@ -63,8 +63,8 @@ class BookingDetailsServiceTest {
         testBookingDetails.setDuration(5);
         testBookingDetails.setStartDate(LocalDate.now());
         testBookingDetails.setEndDate(LocalDate.now().plusDays(5));
-        testBookingDetails.setModeOfBooking(ModeOfBooking.Online);
-        testBookingDetails.setModeOfPayment(ModeOfPayment.Prepaid);
+        testBookingDetails.setModeOfBooking(ModeOfBooking.online);
+        testBookingDetails.setModeOfPayment(ModeOfPayment.prepaid);
         testBookingDetails.setCustomerList(List.of(testCustomer));
         testBookingDetails.setRoomList(List.of(testRoom));
         testBookingDetails.setBillAmount(500);
