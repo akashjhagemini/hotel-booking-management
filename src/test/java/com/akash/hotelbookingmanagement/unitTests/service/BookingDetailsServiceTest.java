@@ -1,11 +1,16 @@
-package com.akash.hotelbookingmanagement.service;
+package com.akash.hotelbookingmanagement.unitTests.service;
 
+import com.akash.hotelbookingmanagement.config.BookingDetailsMapper;
 import com.akash.hotelbookingmanagement.exception.*;
 import com.akash.hotelbookingmanagement.model.BookingDetails;
+import com.akash.hotelbookingmanagement.dto.BookingDetailsDto;
 import com.akash.hotelbookingmanagement.model.Customer;
 import com.akash.hotelbookingmanagement.model.Room;
 import com.akash.hotelbookingmanagement.repository.BookingDetailsRepository;
 import com.akash.hotelbookingmanagement.repository.RoomRepository;
+import com.akash.hotelbookingmanagement.service.BookingDetailsService;
+import com.akash.hotelbookingmanagement.service.CustomerService;
+import com.akash.hotelbookingmanagement.service.RoomService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +20,6 @@ import org.mockito.MockitoAnnotations;
 import com.akash.hotelbookingmanagement.model.enums.ModeOfBooking;
 import com.akash.hotelbookingmanagement.model.enums.ModeOfPayment;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -44,18 +48,23 @@ class BookingDetailsServiceTest {
     CustomerService customerService;
 
     private BookingDetails testBookingDetails;
+
+    private BookingDetailsDto testBookingDetailsDto;
     private Customer testCustomer;
     private Room testRoom;
+
+    @Mock
+    private BookingDetailsMapper bookingDetailsMapper;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
         // Set up a test customer
-        testCustomer = new Customer(1, "John Doe", "123 Main St", 30, "1234567890");
+        testCustomer = new Customer(1, "Akash", "Delhi", 30, "1234567890");
 
         // Set up a test room
-        testRoom = new Room(101, "Standard", 2, 100, true, false, true, new ArrayList<>());
+        testRoom = new Room(101, "single", 2, 100, true, false, true, new ArrayList<>());
 
         // Set up a test booking details
         testBookingDetails = new BookingDetails();
@@ -69,19 +78,30 @@ class BookingDetailsServiceTest {
         testBookingDetails.setRoomList(List.of(testRoom));
         testBookingDetails.setBillAmount(500);
         testBookingDetails.setPaidAmount(250);
+
+        // Set up a test booking details dto
+        testBookingDetailsDto = new BookingDetailsDto();
+        testBookingDetailsDto.setDuration(5);
+        testBookingDetailsDto.setStartDate(LocalDate.now());
+        testBookingDetailsDto.setEndDate(LocalDate.now().plusDays(5));
+        testBookingDetailsDto.setModeOfBooking(ModeOfBooking.online);
+        testBookingDetailsDto.setModeOfPayment(ModeOfPayment.prepaid);
+        testBookingDetailsDto.setCustomerIdList(List.of(1));
+        testBookingDetailsDto.setRoomNumberList(List.of(101));
+        testBookingDetailsDto.setPaidAmount(250);
     }
 
     @Test
     void testCreateBooking_Success() {
         // Arrange
-        when(customerService.getCustomerById(testCustomer.getCustomerId())).thenReturn(testCustomer);
         when(roomService.getRoomByRoomNumber(testRoom.getRoomNumber())).thenReturn(testRoom);
         when(roomService.checkRoomsAvailability(testBookingDetails.getRoomList())).thenReturn(true);
         when(bookingDetailsRepository.save(testBookingDetails)).thenReturn(testBookingDetails);
         when(roomRepository.save(any(Room.class))).thenReturn(testRoom);
+        when(bookingDetailsMapper.convertToEntity(any(BookingDetailsDto.class))).thenReturn(testBookingDetails);
 
         // Act
-        BookingDetails createdBooking = bookingDetailsService.createBooking(testBookingDetails);
+        BookingDetails createdBooking = bookingDetailsService.createBooking(testBookingDetailsDto);
 
         // Assert
         assertNotNull(createdBooking);
@@ -93,9 +113,10 @@ class BookingDetailsServiceTest {
     void testCreateBooking_RoomNotAvailableException() {
         // Arrange
         when(roomService.checkRoomsAvailability(testBookingDetails.getRoomList())).thenReturn(false);
+        when(bookingDetailsMapper.convertToEntity(any(BookingDetailsDto.class))).thenReturn(testBookingDetails);
 
         // Act & Assert
-        assertThrows(RoomNotAvailableException.class, () -> bookingDetailsService.createBooking(testBookingDetails));
+        assertThrows(RoomNotAvailableException.class, () -> bookingDetailsService.createBooking(testBookingDetailsDto));
     }
 
     @Test
@@ -103,12 +124,10 @@ class BookingDetailsServiceTest {
         // Arrange
         testBookingDetails.setRoomList(List.of(testRoom, testRoom, testRoom,testRoom)); // More than 3 rooms
         testBookingDetails.setPaidAmount(100); // Less than 50% payment
-        when(customerService.getCustomerById(testCustomer.getCustomerId())).thenReturn(testCustomer);
-        when(roomService.getRoomByRoomNumber(testRoom.getRoomNumber())).thenReturn(testRoom);
-        when(roomService.checkRoomsAvailability(testBookingDetails.getRoomList())).thenReturn(true);
-
+        when(bookingDetailsMapper.convertToEntity(any(BookingDetailsDto.class))).thenReturn(testBookingDetails);
+        when(roomService.checkRoomsAvailability(any(List.class))).thenReturn(true);
         // Act & Assert
-        assertThrows(AdvancePaymentNotDoneException.class, () -> bookingDetailsService.createBooking(testBookingDetails));
+        assertThrows(AdvancePaymentNotDoneException.class, () -> bookingDetailsService.createBooking(testBookingDetailsDto));
     }
 
     @Test
@@ -116,13 +135,15 @@ class BookingDetailsServiceTest {
         // Arrange
         Customer childCustomer = new Customer(2, "Child", "123 Main St", 10, "1234567890");
         testBookingDetails.setRoomList(List.of(testRoom));
-        testBookingDetails.setCustomerList(List.of(childCustomer)); // Child without adult
-        when(roomService.getRoomByRoomNumber(testRoom.getRoomNumber())).thenReturn(testRoom);
+        testBookingDetails.setCustomerList(List.of(childCustomer));
+
+        testBookingDetailsDto.setRoomNumberList(List.of(101));
+        testBookingDetailsDto.setCustomerIdList(List.of(2)); // Child without adult
         when(roomService.checkRoomsAvailability(any(List.class))).thenReturn(true);
-        when(customerService.getCustomerById(childCustomer.getCustomerId())).thenReturn(childCustomer);
+        when(bookingDetailsMapper.convertToEntity(any(BookingDetailsDto.class))).thenReturn(testBookingDetails);
 
         // Act & Assert
-        assertThrows(ChildrenNotAccompaniedByAdultException.class, () -> bookingDetailsService.createBooking(testBookingDetails));
+        assertThrows(ChildrenNotAccompaniedByAdultException.class, () -> bookingDetailsService.createBooking(testBookingDetailsDto));
     }
 
     @Test
@@ -164,18 +185,21 @@ class BookingDetailsServiceTest {
 
     @Test
     void testUpdateBookingDetails_Success() {
-        // Arrange
-        testRoom.setAvailability(true);
         testBookingDetails.setRoomList(List.of(testRoom));
+        testBookingDetails.setPaidAmount(200);
+        testBookingDetails.setCustomerList(List.of(testCustomer));
+        // Arrange
         when(bookingDetailsRepository.findById(testBookingDetails.getBookingId())).thenReturn(Optional.of(testBookingDetails));
         when(bookingDetailsRepository.save(any(BookingDetails.class))).thenReturn(testBookingDetails);
         when(roomService.getRoomByRoomNumber(testRoom.getRoomNumber())).thenReturn(testRoom);
-        when(roomService.checkRoomsAvailability(testBookingDetails.getRoomList())).thenReturn(true);
+        when(roomService.checkRoomsAvailability(any(List.class))).thenReturn(true);
         when(roomRepository.save(any(Room.class))).thenReturn(testRoom);
-        when(customerService.getCustomerById(testCustomer.getCustomerId())).thenReturn(testCustomer);
+//        when(customerService.getCustomerById(anyInt())).thenReturn(testCustomer);
+        when(bookingDetailsMapper.convertToEntity(any(BookingDetailsDto.class))).thenReturn(testBookingDetails);
+
 
         // Act
-        BookingDetails updatedBooking = bookingDetailsService.updateBookingDetails(testBookingDetails.getBookingId(), testBookingDetails);
+        BookingDetails updatedBooking = bookingDetailsService.updateBookingDetails(testBookingDetails.getBookingId(), testBookingDetailsDto);
 
         // Assert
         assertNotNull(updatedBooking);
@@ -188,23 +212,23 @@ class BookingDetailsServiceTest {
         // Arrange
         when(bookingDetailsRepository.findById(testBookingDetails.getBookingId())).thenReturn(Optional.of(testBookingDetails));
         when(roomService.checkRoomsAvailability(testBookingDetails.getRoomList())).thenReturn(false);
+        when(bookingDetailsMapper.convertToEntity(any(BookingDetailsDto.class))).thenReturn(testBookingDetails);
 
         // Act & Assert
-        assertThrows(RoomNotAvailableException.class, () -> bookingDetailsService.updateBookingDetails(testBookingDetails.getBookingId(), testBookingDetails));
+        assertThrows(RoomNotAvailableException.class, () -> bookingDetailsService.updateBookingDetails(testBookingDetails.getBookingId(), testBookingDetailsDto));
     }
 
     @Test
     void testUpdateBookingDetails_ChildrenNotAccompaniedByAdultException() {
-        // Arrange
         Customer childCustomer = new Customer(2, "Child", "123 Main St", 10, "1234567890");
         testBookingDetails.setCustomerList(List.of(childCustomer)); // Child without adult
         testBookingDetails.setRoomList(List.of(testRoom));
+        // Arrange
         when(bookingDetailsRepository.findById(testBookingDetails.getBookingId())).thenReturn(Optional.of(testBookingDetails));
-        when(customerService.getCustomerById(anyInt())).thenReturn(childCustomer);
+        when(bookingDetailsMapper.convertToEntity(any(BookingDetailsDto.class))).thenReturn(testBookingDetails);
         when(roomService.checkRoomsAvailability(testBookingDetails.getRoomList())).thenReturn(true);
-        when(roomService.getRoomByRoomNumber(testRoom.getRoomNumber())).thenReturn(testRoom);
         // Act & Assert
-        assertThrows(ChildrenNotAccompaniedByAdultException.class, () -> bookingDetailsService.updateBookingDetails(testBookingDetails.getBookingId(), testBookingDetails));
+        assertThrows(ChildrenNotAccompaniedByAdultException.class, () -> bookingDetailsService.updateBookingDetails(testBookingDetails.getBookingId(), testBookingDetailsDto));
     }
 
     @Test

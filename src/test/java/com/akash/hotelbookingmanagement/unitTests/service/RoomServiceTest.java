@@ -1,4 +1,4 @@
-package com.akash.hotelbookingmanagement.service;
+package com.akash.hotelbookingmanagement.unitTests.service;
 
 import com.akash.hotelbookingmanagement.config.RoomMapper;
 import com.akash.hotelbookingmanagement.dto.RoomDto;
@@ -6,6 +6,8 @@ import com.akash.hotelbookingmanagement.exception.ResourceNotFoundException;
 import com.akash.hotelbookingmanagement.model.Customer;
 import com.akash.hotelbookingmanagement.model.Room;
 import com.akash.hotelbookingmanagement.repository.RoomRepository;
+import com.akash.hotelbookingmanagement.service.CustomerService;
+import com.akash.hotelbookingmanagement.service.RoomService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +17,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,6 +40,8 @@ class RoomServiceTest {
     private RoomService roomService;
 
     private Room testRoom;
+
+    private RoomDto testRoomDto;
     private Customer testCustomer;
 
     @BeforeEach
@@ -44,7 +49,7 @@ class RoomServiceTest {
         MockitoAnnotations.openMocks(this);
 
         // Setup a test customer
-        testCustomer = new Customer(1, "John Doe", "123 Main St", 30, "1234567890");
+        testCustomer = new Customer(1, "Akash", "Delhi", 30, "1234567890");
 
         // Set up a test room with the test customer
         List<Customer> checkedInCustomers = new ArrayList<>();
@@ -60,22 +65,30 @@ class RoomServiceTest {
                 .isCheckedOut(true)
                 .checkedInCustomers(checkedInCustomers)
                 .build();
+
+        // Initialize test RoomDto
+        testRoomDto = new RoomDto();
+        testRoomDto.setType("Standard");
+        testRoomDto.setOccupancy(2);
+        testRoomDto.setPricePerDay(100);
+        testRoomDto.setCheckedInCustomerIdList(Collections.singletonList(testCustomer.getCustomerId()));
+
+
     }
 
     @Test
     void testCreateRoom() {
         // Arrange
-        when(customerService.getCustomerById(anyInt())).thenReturn(testCustomer);
         when(roomRepository.save(any(Room.class))).thenReturn(testRoom);
+        when(roomMapper.convertToEntity(any(RoomDto.class))).thenReturn(testRoom);
 
         // Act
-        Room createdRoom = roomService.createRoom(testRoom);
+        Room createdRoom = roomService.createRoom(testRoomDto);
 
         // Assert
         assertNotNull(createdRoom);
         assertEquals(testRoom, createdRoom);
 
-        verify(customerService, times(1)).getCustomerById(anyInt());
         verify(roomRepository, times(1)).save(any(Room.class));
     }
 

@@ -1,8 +1,9 @@
-package com.akash.hotelbookingmanagement.service;
+package com.akash.hotelbookingmanagement.unitTests.service;
 
 import com.akash.hotelbookingmanagement.exception.ResourceNotFoundException;
 import com.akash.hotelbookingmanagement.model.Customer;
 import com.akash.hotelbookingmanagement.repository.CustomerRepository;
+import com.akash.hotelbookingmanagement.service.CustomerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

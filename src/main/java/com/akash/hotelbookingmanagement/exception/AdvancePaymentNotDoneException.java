@@ -6,15 +6,8 @@ public class AdvancePaymentNotDoneException extends RuntimeException {
         super();
     }
 
-    public AdvancePaymentNotDoneException(String message) {
+    public AdvancePaymentNotDoneException(final String message) {
         super(message);
     }
 
-    public AdvancePaymentNotDoneException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public AdvancePaymentNotDoneException(Throwable cause) {
-        super(cause);
-    }
 }

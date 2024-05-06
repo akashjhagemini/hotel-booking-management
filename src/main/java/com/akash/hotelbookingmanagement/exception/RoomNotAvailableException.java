@@ -6,15 +6,8 @@ public class RoomNotAvailableException extends RuntimeException {
         super();
     }
 
-    public RoomNotAvailableException(String message) {
+    public RoomNotAvailableException(final String message) {
         super(message);
     }
 
-    public RoomNotAvailableException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public RoomNotAvailableException(Throwable cause) {
-        super(cause);
-    }
 }

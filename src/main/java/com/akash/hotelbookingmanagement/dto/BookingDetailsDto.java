@@ -1,28 +1,17 @@
-package com.akash.hotelbookingmanagement.model;
+package com.akash.hotelbookingmanagement.dto;
 
 import com.akash.hotelbookingmanagement.model.enums.ModeOfBooking;
 import com.akash.hotelbookingmanagement.model.enums.ModeOfPayment;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,18 +21,10 @@ import java.util.List;
  */
 @Getter
 @Setter
-@Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookingDetails {
-
-    /**
-     * BookingId
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer bookingId;
+public class BookingDetailsDto {
 
     /**
      * Duration of the booking in days.
@@ -81,32 +62,14 @@ public class BookingDetails {
     private ModeOfPayment modeOfPayment;
 
     /**
-     * List of customers associated with the booking.
+     * List of customer's ids associated with the booking.
      */
-    @NotNull(message = "At least one customer must be specified")
-    @Size(min = 1, message = "At least one customer must be specified")
-    @OneToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
-    @JoinTable(name = "booking_customer",
-            joinColumns = @JoinColumn(name = "booking_id"),
-            inverseJoinColumns = @JoinColumn(name = "customerId"))
-    private List<Customer> customerList;
+    private List<Integer> customerIdList;
 
     /**
-     * List of rooms booked for the reservation.
+     * List of roomNumbers booked for the reservation.
      */
-    @NotNull(message = "At least one room must be specified")
-    @Size(min = 1, message = "At least one room must be specified")
-    @OneToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
-    @JoinTable(name = "booked_room_list",
-            joinColumns = @JoinColumn(name = "booking_id"),
-            inverseJoinColumns = @JoinColumn(name = "room_number"))
-    private List<Room> roomList;
-
-    /**
-     * Total bill amount for the booking.
-     */
-    @Min(value = 0, message = "Bill amount cannot be negative")
-    private Integer billAmount;
+    private List<Integer> roomNumberList;
 
     /**
      * Amount paid for the booking.

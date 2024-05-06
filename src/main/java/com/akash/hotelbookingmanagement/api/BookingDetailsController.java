@@ -1,13 +1,21 @@
 package com.akash.hotelbookingmanagement.api;
 
 import com.akash.hotelbookingmanagement.model.BookingDetails;
+import com.akash.hotelbookingmanagement.dto.BookingDetailsDto;
 import com.akash.hotelbookingmanagement.service.BookingDetailsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Controller class for managing booking-related API endpoints.
@@ -24,13 +32,13 @@ public class BookingDetailsController {
     /**
      * Creates a new booking.
      *
-     * @param bookingDetails The booking details to create.
+     * @param bookingDetailsData The booking details to create.
      * @return ResponseEntity representing the HTTP response.
      */
     @PostMapping("/")
-    public ResponseEntity<BookingDetails> createBookingDetails(@RequestBody final BookingDetails bookingDetails) {
+    public ResponseEntity<BookingDetails> createBookingDetails(@RequestBody final BookingDetailsDto bookingDetailsData) {
         LOGGER.info("Request received to create a new booking");
-        BookingDetails createdBooking = bookingDetailsService.createBooking(bookingDetails);
+        BookingDetails createdBooking = bookingDetailsService.createBooking(bookingDetailsData);
         if (createdBooking != null) {
             LOGGER.info("New booking created successfully");
             return new ResponseEntity<>(createdBooking, HttpStatus.CREATED);
@@ -75,13 +83,13 @@ public class BookingDetailsController {
      * Updates a booking.
      *
      * @param id             The ID of the booking to update.
-     * @param bookingDetails The updated booking details.
+     * @param bookingDetailsData The updated booking details.
      * @return ResponseEntity representing the HTTP response.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<BookingDetails> updateBookingDetails(@PathVariable final Integer id, @RequestBody final BookingDetails bookingDetails) {
+    public ResponseEntity<BookingDetails> updateBookingDetails(@PathVariable final Integer id, @RequestBody final BookingDetailsDto bookingDetailsData) {
         LOGGER.info("Request received to update booking with ID: {}", id);
-        BookingDetails updatedBooking = bookingDetailsService.updateBookingDetails(id, bookingDetails);
+        BookingDetails updatedBooking = bookingDetailsService.updateBookingDetails(id, bookingDetailsData);
         if (updatedBooking != null) {
             LOGGER.info("Updated booking with ID: {}", id);
             return new ResponseEntity<>(updatedBooking, HttpStatus.OK);

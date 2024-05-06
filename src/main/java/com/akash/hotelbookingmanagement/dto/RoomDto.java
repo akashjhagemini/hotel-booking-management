@@ -1,6 +1,5 @@
 package com.akash.hotelbookingmanagement.dto;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -12,13 +11,6 @@ import java.util.List;
 @Getter
 @Setter
 public class RoomDto {
-    /**
-     * The unique identifier for the room.
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer roomNumber;
-
     /**
      * The type of the room.
      */
@@ -32,25 +24,25 @@ public class RoomDto {
     private Integer occupancy;
 
     /**
-     * The price per day for the room.
-     */
-    @Positive(message = "Price per day must be positive")
-    private Integer pricePerDay;
-
-    /**
      * The availability status of the room.
      */
-    private Boolean availability = true;
+    private Boolean availability;
 
     /**
      * Flag indicating whether the room is currently checked in.
      */
-    private Boolean isCheckedIn = false;
+    private Boolean isCheckedIn;
 
     /**
      * Flag indicating whether the room is checked out.
      */
-    private Boolean isCheckedOut = true;
+    private Boolean isCheckedOut;
+
+    /**
+     * The price per day for the room.
+     */
+    @Positive(message = "Price per day must be positive")
+    private Integer pricePerDay;
 
     /**
      * The list of customers currently checked in to the room.

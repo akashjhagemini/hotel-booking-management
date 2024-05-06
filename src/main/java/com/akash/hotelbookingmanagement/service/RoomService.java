@@ -32,14 +32,11 @@ public class RoomService {
     /**
      * Creates a new room.
      *
-     * @param room The room to create.
+     * @param roomData The data of room to create.
      * @return The created room.
      */
-    public Room createRoom(@Valid final Room room) {
-        List<Customer> customerList = room.getCheckedInCustomers().stream().map(customer ->
-            customerService.getCustomerById(customer.getCustomerId())
-        ).toList();
-        room.setCheckedInCustomers(customerList);
+    public Room createRoom(@Valid final RoomDto roomData) {
+        Room room = roomMapper.convertToEntity(roomData);
         return roomRepository.save(room);
     }
 
@@ -107,8 +104,8 @@ public class RoomService {
         if (room.getPricePerDay() != null) {
             roomOld.setPricePerDay(room.getPricePerDay());
         }
-        if (room.getAvailability() != null) {
-            roomOld.setAvailability(room.getAvailability());
+        if (room.getCheckedInCustomers() != null) {
+            roomOld.setCheckedInCustomers(room.getCheckedInCustomers());
         }
         if (room.getIsCheckedIn() != null) {
             roomOld.setIsCheckedIn(room.getIsCheckedIn());
@@ -116,9 +113,10 @@ public class RoomService {
         if (room.getIsCheckedOut() != null) {
             roomOld.setIsCheckedOut(room.getIsCheckedOut());
         }
-        if (room.getCheckedInCustomers() != null) {
-            roomOld.setCheckedInCustomers(room.getCheckedInCustomers());
+        if (room.getAvailability() != null) {
+            roomOld.setAvailability(room.getAvailability());
         }
+
         return roomRepository.save(roomOld);
     }
 

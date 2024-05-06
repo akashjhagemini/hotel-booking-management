@@ -1,5 +1,6 @@
-package com.akash.hotelbookingmanagement.api;
+package com.akash.hotelbookingmanagement.unitTests.api;
 
+import com.akash.hotelbookingmanagement.api.CustomerController;
 import com.akash.hotelbookingmanagement.model.Customer;
 import com.akash.hotelbookingmanagement.service.CustomerService;
 import org.junit.jupiter.api.BeforeEach;

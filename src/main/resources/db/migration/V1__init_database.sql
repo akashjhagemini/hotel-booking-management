@@ -22,7 +22,7 @@ CREATE TABLE customer_room (
     customer_id INT,
     PRIMARY KEY (room_number, customer_id),
     FOREIGN KEY (room_number) REFERENCES room(room_number),
-    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id)
+    FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
 );
 
 CREATE TABLE booking_details (

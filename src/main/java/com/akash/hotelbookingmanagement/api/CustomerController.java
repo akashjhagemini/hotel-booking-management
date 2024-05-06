@@ -7,7 +7,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/customer")
@@ -19,7 +26,7 @@ public class CustomerController {
     private CustomerService customerService;
 
     @PostMapping(value = "/")
-    public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
+    public ResponseEntity<Customer> createCustomer(final @RequestBody Customer customer) {
         LOGGER.info("Request received to create a new customer");
         Customer savedCustomer = customerService.addCustomer(customer);
         LOGGER.info("New customer created successfully");
@@ -35,7 +42,7 @@ public class CustomerController {
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<Customer> getCustomer(@PathVariable Integer id) {
+    public ResponseEntity<Customer> getCustomer(final @PathVariable Integer id) {
         LOGGER.info("Request received to fetch customer with ID: {}", id);
         Customer customer = customerService.getCustomerById(id);
         if (customer != null) {
@@ -48,7 +55,7 @@ public class CustomerController {
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<Customer> updateCustomer(@PathVariable Integer id, @RequestBody Customer customerNew) {
+    public ResponseEntity<Customer> updateCustomer(final @PathVariable Integer id, final @RequestBody Customer customerNew) {
         LOGGER.info("Request received to update customer with ID: {}", id);
         Customer updatedCustomer = customerService.updateCustomer(id, customerNew);
         if (updatedCustomer != null) {
@@ -61,7 +68,7 @@ public class CustomerController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteCustomer(final @PathVariable Integer id) {
         LOGGER.info("Request received to delete customer with ID: {}", id);
         boolean deleted = customerService.deleteCustomer(id);
         if (deleted) {

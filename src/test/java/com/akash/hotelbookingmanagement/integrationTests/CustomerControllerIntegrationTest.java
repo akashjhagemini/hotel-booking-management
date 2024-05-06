@@ -4,21 +4,21 @@ import com.akash.hotelbookingmanagement.api.CustomerController;
 import com.akash.hotelbookingmanagement.model.Customer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
-import org.apache.commons.lang3.function.Suppliers;
-import org.junit.After;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -31,9 +31,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-
-import java.util.List;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -96,30 +93,14 @@ public class CustomerControllerIntegrationTest {
 
     @Test
     public void getAllCustomersTest() throws Exception {
-        Customer customer = Customer.builder()
-                .fullName("akash-test")
-                .age(16)
-                .address("gemini")
-                .contactNumber("1234567898")
-                .build();
 
-        ObjectMapper mapper = new ObjectMapper();
-        mockMvc.perform(MockMvcRequestBuilders
-                        .post("/customer/")
-                        .content(mapper.writeValueAsString(customer))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding("utf-8"))
-                .andDo(MockMvcResultHandlers.print())
-                .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-
-        //we are initializing data using data.sql file and so here we check whether we receive 4 customers or not
+        //we are initializing data using migration script file via flyway, so here we check whether we receive 4 customers or not
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/customer/"))
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(greaterThan(0))));
+                .andExpect(jsonPath("$", hasSize(4)));
 
     }
 

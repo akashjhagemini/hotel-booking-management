@@ -1,11 +1,22 @@
 package com.akash.hotelbookingmanagement.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.ManyToMany;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
-import lombok.*;
-
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.util.List;
 
 /**
@@ -56,12 +67,12 @@ public class Room {
     /**
      * Flag indicating whether the room is checked out.
      */
-    private Boolean isCheckedOut = true;
+    private Boolean isCheckedOut = false;
 
     /**
      * The list of customers currently checked in to the room.
      */
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     @JoinTable(name = "customer_room",
             joinColumns = @JoinColumn(name = "roomNumber"),
             inverseJoinColumns = @JoinColumn(name = "customerId"))

@@ -1,5 +1,6 @@
-package com.akash.hotelbookingmanagement.api;
+package com.akash.hotelbookingmanagement.unitTests.api;
 
+import com.akash.hotelbookingmanagement.api.RoomController;
 import com.akash.hotelbookingmanagement.dto.RoomDto;
 import com.akash.hotelbookingmanagement.model.Customer;
 import com.akash.hotelbookingmanagement.model.Room;
@@ -58,22 +59,18 @@ public class RoomControllerTest {
 
         // Initialize test RoomDto
         testRoomDto = new RoomDto();
-        testRoomDto.setRoomNumber(101);
         testRoomDto.setType("Standard");
         testRoomDto.setOccupancy(2);
         testRoomDto.setPricePerDay(100);
-        testRoomDto.setAvailability(true);
-        testRoomDto.setIsCheckedIn(false);
-        testRoomDto.setIsCheckedOut(false);
         testRoomDto.setCheckedInCustomerIdList(Collections.singletonList(testCustomer.getCustomerId()));
     }
 
     @Test
     @DisplayName("Should create a room")
     void testCreateRoom() {
-        when(roomService.createRoom(any(Room.class))).thenReturn(testRoom);
+        when(roomService.createRoom(any(RoomDto.class))).thenReturn(testRoom);
 
-        ResponseEntity<Room> responseEntity = roomController.createRoom(testRoom);
+        ResponseEntity<Room> responseEntity = roomController.createRoom(testRoomDto);
 
         assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
         assertEquals(testRoom, responseEntity.getBody());

@@ -113,7 +113,6 @@
         <!--  See https://checkstyle.org/config_coding.html  -->
         <module name="EmptyStatement"/>
         <module name="EqualsHashCode"/>
-        <module name="HiddenField"/>
         <module name="IllegalInstantiation"/>
         <module name="InnerAssignment"/>
         <!-- <module name="MagicNumber"/> -->
@@ -122,8 +121,6 @@
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>
         <!--  Checks for class design                          -->
-        <!--  See https://checkstyle.org/config_design.html  -->
-        <module name="DesignForExtension"/>
         <module name="FinalClass"/>
         <!--         <module name="HideUtilityClassConstructor"/> -->
         <module name="InterfaceIsType"/>

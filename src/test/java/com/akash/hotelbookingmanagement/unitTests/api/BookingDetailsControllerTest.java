@@ -1,6 +1,8 @@
-package com.akash.hotelbookingmanagement.api;
+package com.akash.hotelbookingmanagement.unitTests.api;
 
+import com.akash.hotelbookingmanagement.api.BookingDetailsController;
 import com.akash.hotelbookingmanagement.model.BookingDetails;
+import com.akash.hotelbookingmanagement.dto.BookingDetailsDto;
 import com.akash.hotelbookingmanagement.model.Customer;
 import com.akash.hotelbookingmanagement.model.Room;
 import com.akash.hotelbookingmanagement.model.enums.ModeOfBooking;
@@ -19,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
@@ -33,6 +36,7 @@ public class BookingDetailsControllerTest {
     private BookingDetailsController bookingDetailsController;
 
     private BookingDetails testBookingDetails;
+    private BookingDetailsDto testBookingDetailsDto;
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -50,13 +54,23 @@ public class BookingDetailsControllerTest {
         testBookingDetails.setBillAmount(500);
         testBookingDetails.setPaidAmount(250);
 
+        // Set up a test booking details dto
+        testBookingDetailsDto = new BookingDetailsDto();
+        testBookingDetailsDto.setDuration(5);
+        testBookingDetailsDto.setStartDate(LocalDate.now());
+        testBookingDetailsDto.setEndDate(LocalDate.now().plusDays(5));
+        testBookingDetailsDto.setModeOfBooking(ModeOfBooking.online);
+        testBookingDetailsDto.setModeOfPayment(ModeOfPayment.prepaid);
+        testBookingDetailsDto.setCustomerIdList(List.of(1));
+        testBookingDetailsDto.setRoomNumberList(List.of(101));
+        testBookingDetailsDto.setPaidAmount(250);
     }
 
     @Test
     @DisplayName("Should create a booking")
     void testCreateBookingDetails() {
-        when(bookingDetailsService.createBooking(any(BookingDetails.class))).thenReturn(testBookingDetails);
-        ResponseEntity<BookingDetails> responseEntity = bookingDetailsController.createBookingDetails(testBookingDetails);
+        when(bookingDetailsService.createBooking(any(BookingDetailsDto.class))).thenReturn(testBookingDetails);
+        ResponseEntity<BookingDetails> responseEntity = bookingDetailsController.createBookingDetails(testBookingDetailsDto);
 
         assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
     }
@@ -82,8 +96,8 @@ public class BookingDetailsControllerTest {
     @Test
     @DisplayName("Should update booking")
     void testUpdateBookingDetails() {
-        when(bookingDetailsService.updateBookingDetails(anyInt(), any(BookingDetails.class))).thenReturn(testBookingDetails);
-        ResponseEntity<BookingDetails> responseEntity = bookingDetailsController.updateBookingDetails(1, testBookingDetails);
+        when(bookingDetailsService.updateBookingDetails(anyInt(), any(BookingDetailsDto.class))).thenReturn(testBookingDetails);
+        ResponseEntity<BookingDetails> responseEntity = bookingDetailsController.updateBookingDetails(1, testBookingDetailsDto);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
