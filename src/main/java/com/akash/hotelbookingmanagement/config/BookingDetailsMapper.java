@@ -6,14 +6,15 @@ import com.akash.hotelbookingmanagement.model.Customer;
 import com.akash.hotelbookingmanagement.model.Room;
 import com.akash.hotelbookingmanagement.service.CustomerService;
 import com.akash.hotelbookingmanagement.service.RoomService;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
+@SuppressFBWarnings(value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class BookingDetailsMapper {
 
     private final ModelMapper modelMapper;

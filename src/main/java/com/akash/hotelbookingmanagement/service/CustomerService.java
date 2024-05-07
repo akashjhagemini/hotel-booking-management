@@ -73,7 +73,6 @@ public class CustomerService {
             if (customerNew.getContactNumber() != null) {
                 customerOld.setContactNumber(customerNew.getContactNumber());
             }
-
             return customerRepository.save(customerOld);
         } else {
             throw new ResourceNotFoundException("Customer details not found with id: " + id);

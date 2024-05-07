@@ -45,38 +45,20 @@ public class CustomerController {
     public ResponseEntity<Customer> getCustomer(final @PathVariable Integer id) {
         LOGGER.info("Request received to fetch customer with ID: {}", id);
         Customer customer = customerService.getCustomerById(id);
-        if (customer != null) {
-            LOGGER.info("Found customer with ID: {}", id);
-            return ResponseEntity.ok(customer);
-        } else {
-            LOGGER.warn("Customer with ID: {} not found", id);
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(customer);
     }
 
     @PutMapping(value = "/{id}")
     public ResponseEntity<Customer> updateCustomer(final @PathVariable Integer id, final @RequestBody Customer customerNew) {
         LOGGER.info("Request received to update customer with ID: {}", id);
         Customer updatedCustomer = customerService.updateCustomer(id, customerNew);
-        if (updatedCustomer != null) {
-            LOGGER.info("Updated customer with ID: {}", id);
-            return ResponseEntity.ok(updatedCustomer);
-        } else {
-            LOGGER.warn("Customer with ID: {} not found", id);
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(updatedCustomer);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCustomer(final @PathVariable Integer id) {
         LOGGER.info("Request received to delete customer with ID: {}", id);
-        boolean deleted = customerService.deleteCustomer(id);
-        if (deleted) {
-            LOGGER.info("Deleted customer with ID: {}", id);
-            return ResponseEntity.noContent().build();
-        } else {
-            LOGGER.warn("Customer with ID: {} not found", id);
-            return ResponseEntity.notFound().build();
-        }
+        customerService.deleteCustomer(id);
+        return ResponseEntity.noContent().build();
     }
 }

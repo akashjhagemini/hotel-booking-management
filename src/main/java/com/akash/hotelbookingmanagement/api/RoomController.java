@@ -32,13 +32,7 @@ public class RoomController {
     public ResponseEntity<Room> createRoom(@RequestBody final RoomDto roomData) {
         LOGGER.info("Request received to create a new room");
         Room savedRoom = roomService.createRoom(roomData);
-        if (savedRoom != null) {
-            LOGGER.info("New room created successfully");
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedRoom);
-        } else {
-            LOGGER.error("Failed to create a new room");
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedRoom);
     }
 
     @GetMapping

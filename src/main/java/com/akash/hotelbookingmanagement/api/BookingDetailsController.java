@@ -39,13 +39,7 @@ public class BookingDetailsController {
     public ResponseEntity<BookingDetails> createBookingDetails(@RequestBody final BookingDetailsDto bookingDetailsData) {
         LOGGER.info("Request received to create a new booking");
         BookingDetails createdBooking = bookingDetailsService.createBooking(bookingDetailsData);
-        if (createdBooking != null) {
-            LOGGER.info("New booking created successfully");
-            return new ResponseEntity<>(createdBooking, HttpStatus.CREATED);
-        } else {
-            LOGGER.error("Failed to create a new booking");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        return new ResponseEntity<>(createdBooking, HttpStatus.CREATED);
     }
 
     /**
@@ -90,13 +84,7 @@ public class BookingDetailsController {
     public ResponseEntity<BookingDetails> updateBookingDetails(@PathVariable final Integer id, @RequestBody final BookingDetailsDto bookingDetailsData) {
         LOGGER.info("Request received to update booking with ID: {}", id);
         BookingDetails updatedBooking = bookingDetailsService.updateBookingDetails(id, bookingDetailsData);
-        if (updatedBooking != null) {
-            LOGGER.info("Updated booking with ID: {}", id);
-            return new ResponseEntity<>(updatedBooking, HttpStatus.OK);
-        } else {
-            LOGGER.warn("Booking with ID: {} not found", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(updatedBooking, HttpStatus.OK);
     }
 
     /**
@@ -108,13 +96,7 @@ public class BookingDetailsController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBookingDetails(@PathVariable final Integer id) {
         LOGGER.info("Request received to delete booking with ID: {}", id);
-        boolean deleted = bookingDetailsService.deleteBookingDetails(id);
-        if (deleted) {
-            LOGGER.info("Deleted booking with ID: {}", id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } else {
-            LOGGER.warn("Booking with ID: {} not found", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        bookingDetailsService.deleteBookingDetails(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

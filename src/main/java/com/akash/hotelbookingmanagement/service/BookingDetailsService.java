@@ -156,7 +156,7 @@ public class BookingDetailsService {
         BookingDetails savedBookingDetails = bookingDetailsRepository.save(existingBooking);
 
         //set the availability of every room to be false after saving to avoid possibility of error
-        if(bookingDetails.getRoomList() != null){
+        if (bookingDetails.getRoomList() != null) {
             bookingDetails.getRoomList().forEach(room -> {
                 room = roomService.getRoomByRoomNumber(room.getRoomNumber());
                 room.setAvailability(false);

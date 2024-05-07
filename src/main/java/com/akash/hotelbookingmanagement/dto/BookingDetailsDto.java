@@ -2,6 +2,7 @@ package com.akash.hotelbookingmanagement.dto;
 
 import com.akash.hotelbookingmanagement.model.enums.ModeOfBooking;
 import com.akash.hotelbookingmanagement.model.enums.ModeOfPayment;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -24,6 +25,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@SuppressFBWarnings(value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class BookingDetailsDto {
 
     /**
